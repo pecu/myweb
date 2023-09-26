@@ -6,93 +6,46 @@
 <body>
     <h1>ChatGPT Conversation</h1>
 
-    <script src="https://cdn.jsdelivr.net/npm/openai"></script>
-    <script>
-        const apiKey = prompt('请输入OpenAI API密钥：');
+    <div id="api-key-input" style="display: none;">
+        <label for="api-key">Please input your OpenAI API key</label>
+        <input type="text" id="api-key" />
+        <button onclick="initializeConversation()">Go</button>
+    </div>
 
-        if (!apiKey) {
-            alert('API密钥不能为空。请刷新页面并输入API密钥。');
-        } else {
-            const chatBox = document.getElementById('chat-box');
-            const userMessageInput = document.getElementById('user-message');
-
-            const openai = new OpenAI({
-                apiKey: apiKey,
-                chatgpt: true
-            });
-
-            async function startConversation() {
-                const userMessage = userMessageInput.value;
-                if (!userMessage) {
-                    return;
-                }
-
-                appendMessage('User', userMessage);
-
-                // 用户消息
-                const responseUser = await openai.createChatMessage({
-                    model: 'gpt-3.5-turbo',
-                    messages: [
-                        { role: 'system', content: 'You are a helpful assistant.' },
-                        { role: 'user', content: userMessage }
-                    ]
-                });
-
-                const userReply = responseUser.data.choices[0].message.content;
-                appendMessage('ChatGPT 1', userReply);
-
-                // ChatGPT 1 回复
-                const response1 = await openai.createChatMessage({
-                    model: 'gpt-3.5-turbo',
-                    messages: [
-                        { role: 'system', content: 'You are a helpful assistant.' },
-                        { role: 'user', content: userMessage },
-                        { role: 'assistant', content: userReply }
-                    ]
-                });
-
-                const chatgpt1Reply = response1.data.choices[0].message.content;
-                appendMessage('ChatGPT 2', chatgpt1Reply);
-
-                // ChatGPT 2 回复
-                const response2 = await openai.createChatMessage({
-                    model: 'gpt-3.5-turbo',
-                    messages: [
-                        { role: 'system', content: 'You are a helpful assistant.' },
-                        { role: 'user', content: userMessage },
-                        { role: 'assistant', content: userReply },
-                        { role: 'assistant', content: chatgpt1Reply }
-                    ]
-                });
-
-                const chatgpt2Reply = response2.data.choices[0].message.content;
-                appendMessage('ChatGPT 1', chatgpt2Reply);
-
-                userMessageInput.value = '';
-            }
-
-            function appendMessage(role, message) {
-                const messageDiv = document.createElement('div');
-                messageDiv.innerHTML = `<strong>${role}:</strong> ${message}`;
-                chatBox.appendChild(messageDiv);
-            }
-
-            function stopConversation() {
-                chatBox.innerHTML = '';
-            }
-        }
-    </script>
-
-    <div id="conversation">
+    <div id="conversation" style="display: none;">
         <div id="user-input">
-            <label for="user-message">请输入第一句话：</label>
+            <label for="user-message">Start to chat：</label>
             <input type="text" id="user-message" />
-            <button onclick="startConversation()">开始对话</button>
+            <button onclick="startConversation()">Go</button>
         </div>
         <div id="chat-box">
             <!-- 聊天内容将在这里显示 -->
         </div>
-        <button onclick="stopConversation()">停止对话</button>
+        <button onclick="stopConversation()">Stop</button>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/openai"></script>
+    <script>
+        function initializeConversation() {
+            const apiKeyInput = document.getElementById('api-key');
+            const apiKey = apiKeyInput.value.trim();
+
+            if (apiKey) {
+                apiKeyInput.style.display = 'none';
+                document.getElementById('conversation').style.display = 'block';
+                initChat(apiKey);
+            } else {
+                alert('API key error');
+            }
+        }
+
+        function initChat(apiKey) {
+            const chatBox = document.getElementById('chat-box');
+            const userMessageInput = document.getElementById('user-message');
+
+            console.log(apiKey);
+            
+        }
+    </script>
 </body>
 </html>
