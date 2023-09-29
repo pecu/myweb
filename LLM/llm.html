@@ -1,67 +1,106 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>OpenAI 聊天機器人</title>
+    <title>Chat with Mom and Son</title>
 </head>
 <body>
-    <h1>OpenAI 聊天機器人</h1>
-    <label for="apiKey">API Key:</label>
-    <input type="text" id="apiKey"><br>
-    <label for="topic">主題:</label>
-    <input type="text" id="topic"><br>
-    <button onclick="startChat()">開始</button>
-    <button onclick="stopChat()">停止</button><br><br>
-    <div id="chat"></div>
+    <h1>Chat with Mom and Son</h1>
+    <label for="apiKey">OpenAI API Key:</label>
+    <input type="text" id="apiKey" placeholder="Enter your API key"><br>
+    <label for="topic">Chat Topic:</label>
+    <input type="text" id="topic" placeholder="Enter the chat topic"><br>
+    <button onclick="startChat()">Start Chat</button>
+    <button onclick="stopChat()">Stop Chat</button>
+
+    <div id="chatbox">
+        <div id="mom" class="chat"></div>
+        <div id="son" class="chat"></div>
+    </div>
 
     <script>
-        let apiKey = "";
-        let topic = "";
-        let chatInterval;
+        let momChat = document.getElementById('mom');
+        let sonChat = document.getElementById('son');
+        let apiKeyInput = document.getElementById('apiKey');
+        let topicInput = document.getElementById('topic');
+        let stopButton = document.querySelector('button');
+        let momMessage = '';
+        let sonMessage = '';
+        let stopChatting = false;
 
-        function startChat() {
-            apiKey = document.getElementById("apiKey").value;
-            topic = document.getElementById("topic").value;
-            chatInterval = setInterval(chatWithOpenAI, 2000); // 每2秒聊一次
-            document.getElementById("chat").innerHTML = "聊天開始：<br>";
+        function appendMessage(who, message) {
+            let chatDiv = document.createElement('div');
+            chatDiv.textContent = who + ': ' + message;
+            document.getElementById(who.toLowerCase()).appendChild(chatDiv);
         }
 
-        function stopChat() {
-            clearInterval(chatInterval);
-            document.getElementById("chat").innerHTML += "聊天已停止。<br>";
-        }
+        async function startChat() {
+            momMessage = '';
+            sonMessage = '';
+            stopChatting = false;
+            momChat.innerHTML = '';
+            sonChat.innerHTML = '';
 
-        async function chatWithOpenAI() {
+            const apiKey = apiKeyInput.value;
+            const topic = topicInput.value;
+
             if (!apiKey || !topic) {
-                alert("請輸入API Key和主題！");
+                alert('Please enter your API key and chat topic.');
                 return;
             }
 
-            const chatDiv = document.getElementById("chat");
-            chatDiv.innerHTML += "等待 OpenAI 回應...<br>";
-
-            try {
-                const response = await fetch("https://api.openai.com/v1/engines/davinci-codex/completions", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        prompt: `Mom: ${topic}\nSon:`,
-                        max_tokens: 50
-                    })
-                });
-
-                const data = await response.json();
-                const message = data.choices[0].text.trim();
-
-                chatDiv.innerHTML += `Mom: ${message}<br>`;
-                chatDiv.scrollTop = chatDiv.scrollHeight;
-            } catch (error) {
-                console.error("發生錯誤：", error);
-                chatDiv.innerHTML += "發生錯誤，請檢查API Key和主題。<br>";
+            while (!stopChatting) {
+                await fetchMessage('Mom', apiKey, topic);
+                if (!stopChatting) {
+                    await fetchMessage('Son', apiKey, topic);
+                }
             }
         }
+
+        async function fetchMessage(who, apiKey, topic) {
+            const apiUrl = 'https://api.openai.com/v1/completions';
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    "prompt": `${who}: ${who === 'Mom' ? momMessage : sonMessage}\n Topic: ${topic}`,
+                    "max_tokens": 50,
+                    "model": "gpt-3.5-turbo-instruct",
+                    "temperature": 0.7
+                })
+            });
+
+            const data = await response.json();
+            const message = data.choices[0].text.trim();
+
+            if (who === 'Mom') {
+                momMessage += message;
+                appendMessage('Mom', message);
+                await sleep(1000); // Add a delay before Son responds
+                fetchMessage('Son', 'Mom', apiKey, topic);
+            } else {
+                sonMessage += message;
+                appendMessage('Son', message);
+            }
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function stopChat() {
+            stopChatting = true;
+        }
     </script>
+
+    <style>
+        .chat {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+        }
+    </style>
 </body>
 </html>
