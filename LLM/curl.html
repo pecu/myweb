@@ -1,0 +1,49 @@
+<script>
+    
+const apiKey = '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';
+
+const requestData = {
+  model: 'gpt-3.5-turbo',
+  messages: [
+    {
+      role: 'user',
+      content: 'Honney, come here. Mom would like to tell a story.',
+    },
+    {
+      role: 'user',
+      content: 'Mom, I am here. I like TAYO Heavy Vehicle.',
+    },
+    {
+      role: 'user',
+      content: 'OK. Let us read it together.',
+    },
+    {
+      role: 'user',
+      content:
+        "I am, I am a bulldozer I can push anything\nI can flatten bumpy roads\nvery smoothly I can push\nEven a big rock! Even sand\nIt’s not a big deal for\nI am, I am a bulldozer I can push anything\n\nI am, I am an excavator I can lift up anything\nI can lift up a pile of sand\nI can handle it very easily\nI can move sand and dig a big hole\nIt’s not a big deal for me\nI am, I am an excavator I can lift up anything\n\nWe are the strong heavy vehicles\nWe work together\nWe are the strong heavy vehicles\nWe can make anything",
+    },
+  ],
+  temperature: 1,
+  max_tokens: 256,
+  top_p: 1,
+  frequency_penalty: 0,
+  presence_penalty: 0,
+};
+
+fetch('https://api.openai.com/v1/chat/completions', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${apiKey}`,
+  },
+  body: JSON.stringify(requestData),
+})
+  .then((response) => response.json())
+  .then((data) => {
+    console.log(data.choices[0].message.content);
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+  });
+
+</script>
